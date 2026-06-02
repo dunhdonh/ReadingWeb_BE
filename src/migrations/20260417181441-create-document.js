@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("Documents", {
-      doc_id: {
+      document_id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
@@ -20,8 +20,8 @@ module.exports = {
       },
       title: { type: Sequelize.STRING(255), allowNull: false },
       description: { type: Sequelize.TEXT },
-      file_url: { type: Sequelize.STRING(255), allowNull: false },
-      thumbnail_url: { type: Sequelize.STRING(255) },
+      file_url: { type: Sequelize.STRING(255), allowNull: true },
+      thumbnail_url: { type: Sequelize.STRING(255), allowNull: true },
       file_type: {
         type: Sequelize.ENUM("pdf", "epub", "docx", "pptx"),
         allowNull: false,
@@ -34,6 +34,10 @@ module.exports = {
       view_count: { type: Sequelize.INTEGER, defaultValue: 0 },
       download_count: { type: Sequelize.INTEGER, defaultValue: 0 },
       created_at: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
+      updated_at: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },

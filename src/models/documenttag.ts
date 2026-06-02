@@ -1,15 +1,15 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
-  class DocumentTag extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model } from "sequelize";
+import { IDocumentTag } from "../interfaces/documenttag.interface";
+
+export default (sequelize: Sequelize) => {
+  class DocumentTag extends Model<IDocumentTag> implements IDocumentTag {
+    public doc_id!: number;
+    public tag_name!: string;
+    public created_at!: Date;
+    public updated_at!: Date;
+
+    static associate(models: any) {
       this.belongsTo(models.Document, { foreignKey: 'doc_id' });
     }
   }
@@ -35,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'DocumentTag',
+    tableName: 'DocumentTags',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   });
   return DocumentTag;
 };

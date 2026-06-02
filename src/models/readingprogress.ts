@@ -1,13 +1,18 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class ReadingProgress extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model } from "sequelize";
+import { IReadingProgress } from "../interfaces/readingprogress.interface";
+
+export default (sequelize: Sequelize) => {
+  class ReadingProgress extends Model<IReadingProgress> implements IReadingProgress {
+    public progress_id!: number;
+    public user_id!: number;
+    public doc_id!: number;
+    public last_page!: number;
+    public total_pages!: number;
+    public created_at!: Date;
+    public updated_at!: Date;
+
+    static associate(models: any) {
       this.belongsTo(models.User, { foreignKey: "user_id" });
       this.belongsTo(models.Document, { foreignKey: "doc_id" });
     }
@@ -47,6 +52,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "ReadingProgress",
+      tableName: "ReadingProgress",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     },
   );
   return ReadingProgress;

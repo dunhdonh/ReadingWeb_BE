@@ -1,0 +1,16 @@
+export interface IDocument {
+    uploader_id: number,
+    category_id: number,
+    document_id: number,
+    title: string,
+    description?: string,
+    file_url?: string,
+    thumbnail_url?: string,
+    file_type?: string,
+    price_credits: number,
+    status: string,
+    view_count: number,
+    download_count: number,
+    created_at: Date,
+    updated_at: Date,
+}

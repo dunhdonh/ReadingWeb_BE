@@ -1,13 +1,20 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class Annotation extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { IAnnotation } from "../interfaces/annotation.interface";
+
+interface AnnotationCreationAttributes extends Optional<IAnnotation, "annotation_id" | "created_at" | "updated_at"> {}
+export default (sequelize: Sequelize) => {
+  class Annotation extends Model<IAnnotation, AnnotationCreationAttributes> {
+    public annotation_id!: number;
+    public user_id!: number;
+    public doc_id!: number;
+    public page_number!: number;
+    public content!: string | null;
+    public color_code!: string;
+    public created_at!: Date;
+    public updated_at!: Date;
+
+    static associate(models: any) {
       this.belongsTo(models.User, { foreignKey: "user_id" });
       this.belongsTo(models.Document, { foreignKey: "doc_id" });
     }

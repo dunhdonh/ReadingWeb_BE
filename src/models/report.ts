@@ -1,13 +1,20 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class Report extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { IReport } from "../interfaces/report.interface";
+
+interface ReportCreationAttributes extends Optional<IReport, "report_id" | "created_at" | "updated_at"> {}
+
+export default (sequelize: Sequelize) => {
+  class Report extends Model <IReport, ReportCreationAttributes> {
+    public report_id!: number;
+    public reporter_id!: number;
+    public doc_id!: number;
+    public reason!: string;
+    public status!: "pending" | "reviewed" | "resolved";
+    public created_at!: Date;
+    public updated_at!: Date;
+  
+    static associate(models: any) {
       this.belongsTo(models.User, {
         foreignKey: "reporter_id",
         as: "reporter",
@@ -50,6 +57,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Report",
+      tableName: "Reports",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     },
   );
   return Report;

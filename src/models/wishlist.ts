@@ -1,13 +1,15 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class Wishlist extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model } from "sequelize";
+import { IWishlist } from "../interfaces/wishlist.interface";
+  
+export default (sequelize: Sequelize) => {
+  class Wishlist extends Model<IWishlist> implements IWishlist {
+    public wishlist_id!: number;
+    public user_id!: number;
+    public doc_id!: number;
+    public added_at!: Date;
+
+    static associate(models : any) {
       this.belongsTo(models.User, {
         foreignKey: "uploader_id",
         as: "uploader",
@@ -35,10 +37,15 @@ module.exports = (sequelize, DataTypes) => {
   }
   Wishlist.init(
     {
-      doc_id: {
+      wishlist_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
+      },
+      doc_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        allowNull: false,
       },
       user_id: {
         type: DataTypes.INTEGER,
@@ -52,6 +59,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Wishlist",
+      tableName: "Wishlists",
+      timestamps: false,
     },
   );
   return Wishlist;

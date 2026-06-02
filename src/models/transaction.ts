@@ -1,16 +1,23 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class Transaction extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model } from "sequelize";
+import { ITransaction } from "../interfaces/transaction.interface";
+
+export default (sequelize: Sequelize) => {
+  class Transaction extends Model<ITransaction> implements ITransaction {
+    public transaction_id!: number;
+    public user_id!: number;
+    public amount!: number;
+    public transaction_date!: Date;
+    public type!: "upload_reward" | "purchase" | "top-up" | "refund";
+    public description?: string;
+    public created_at!: Date;
+    public updated_at!: Date;
+
+    static associate(models: any) {
       this.belongsTo(models.User, { foreignKey: "user_id" });
     }
   }
+
   Transaction.init(
     {
       transaction_id: {
@@ -49,6 +56,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Transaction",
+      tableName: "Transactions",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     },
   );
   return Transaction;

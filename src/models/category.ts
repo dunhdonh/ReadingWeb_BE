@@ -1,13 +1,16 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class Category extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model } from "sequelize";
+import { ICategory } from "../interfaces/category.interface";
+
+export default (sequelize: Sequelize) => {
+  class Category extends Model<ICategory> implements ICategory {
+    public category_id!: number;
+    public name!: string;
+    public parent_id!: number | null;
+    public created_at!: Date;
+    public updated_at!: Date;
+    
+    static associate(models : any) {
       this.belongsTo(models.Category, {
         foreignKey: "parent_id",
         as: "parent",
@@ -47,6 +50,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Category",
+      tableName: "Categories",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     },
   );
   return Category;

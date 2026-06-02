@@ -1,13 +1,20 @@
 "use strict";
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class Review extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate(models) {
+import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { IReview } from "../interfaces/review.interface";
+
+interface ReviewCreationAttributes extends Optional<IReview, "review_id" | "created_at" | "updated_at"> {}
+
+module.exports = (sequelize: Sequelize) => {
+  class Review extends Model<IReview, ReviewCreationAttributes> {
+    public review_id!: number;
+    public user_id!: number;
+    public doc_id!: number;
+    public rating!: number;
+    public comment!: string | null;
+    public created_at!: Date;
+    public updated_at!: Date;
+
+    static associate(models: any) {
       this.belongsTo(models.User, { foreignKey: "user_id", as: "reviewer" });
       this.belongsTo(models.Document, { foreignKey: "doc_id" });
     }
@@ -47,6 +54,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Review",
+      tableName: "Reviews",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     },
   );
   return Review;
