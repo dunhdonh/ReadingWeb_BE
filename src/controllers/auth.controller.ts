@@ -68,28 +68,53 @@ class AuthController {
     }
   }
 
-  // async profile(req: Request, res: Response) {
-  //   try {
-  //     const userId = req.user?.user_id;
-  //     if (!userId) {
-  //       return res
-  //         .status(401)
-  //         .json({ success: false, message: "Unauthorized" });
-  //     }
+    async forgotPassword(req: Request, res: Response) {
+      try {
+        const { email } = req.body;
+        const result = await authService.sendForgotPasswordEmail(email);
+        return res.status(200).json({
+          success: true,
+          data: result,
+        });
+      } catch (error: any) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
 
-  //     const result = await authService.getProfile(userId);
+    async verifyOtpToken(req: Request, res: Response) {
+      try {
+        const { email, otp } = req.body;
+        const result = await authService.verifyOtpToken(email, otp);
+        return res.status(200).json({
+          success: true,
+          data: result,
+        });
+      } catch (error: any) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    }
 
-  //     return res.status(200).json({
-  //       success: true,
-  //       data: result,
-  //     });
-  //   } catch (error: any) {
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: error.message,
-  //     });
-  //   }
-  // }
+      async resetPassword(req: Request, res: Response) {
+        try {
+          const { email, otp, newPassword } = req.body;
+          const result = await authService.resetPassword(email, newPassword);
+          return res.status(200).json({
+            success: true,
+            data: result,
+          });
+        } catch (error: any) {
+          return res.status(400).json({
+            success: false,
+            message: error.message,
+          });
+        }
+      }
 }
 
 export default new AuthController();

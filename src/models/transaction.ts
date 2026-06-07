@@ -8,7 +8,6 @@ export default (sequelize: Sequelize) => {
     public user_id!: number;
     public amount!: number;
     public transaction_date!: Date;
-    public type!: "upload_reward" | "purchase" | "top-up" | "refund";
     public description?: string;
     public created_at!: Date;
     public updated_at!: Date;

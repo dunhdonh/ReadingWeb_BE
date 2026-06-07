@@ -1,7 +1,8 @@
 import db from "../models";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { IUser, IAuthResponse, IRegisterRequest } from "../interfaces/user.interface";
+import TokenService from "./token.service";
+import MailService from "./sendmail.service";
 const User = db.User;
 const RefreshToken = db.RefreshToken;
 
@@ -43,18 +44,17 @@ class AuthService {
       throw new Error("Mật khẩu không đúng");
     } 
 
-    // Tạo JWT token
-    const accessToken = jwt.sign(
-      { user_id: user.user_id, email: user.email },
-      process.env.ACCESS_TOKEN_SECRET as string,
-      { expiresIn: "1h" }
-    );
+    const accessToken = TokenService.generateAccessToken({
+      user_id: user.user_id,
+      email: user.email,
+      role: user.role,
+    });
 
-    const refreshToken = jwt.sign(
-      { user_id: user.user_id, email: user.email },
-      process.env.REFRESH_TOKEN_SECRET as string,
-      { expiresIn: "7d" }
-    );
+    const refreshToken = TokenService.generateRefreshToken({
+      user_id: user.user_id,
+      email: user.email,
+      role: user.role,
+    });
 
     await RefreshToken.create({
       token: refreshToken,
@@ -68,13 +68,9 @@ class AuthService {
   async refreshAccessToken(refreshToken: string) {
   try {
     // 1. Kiểm tra chữ ký và hạn dùng của Refresh Token
-    const payload = jwt.verify(
-      refreshToken, 
-      process.env.REFRESH_TOKEN_SECRET as string
-    ) as any;
+    const payload = TokenService.verifyRefreshToken(refreshToken) as { user_id: number; email: string; role: string };
 
     // 2. Kiểm tra sự tồn tại của Token này trong Database
-    // Đây là bước quan trọng để ngăn chặn token đã bị thu hồi (revoke)
     const storedToken = await db.RefreshToken.findOne({
       where: {
         token: refreshToken,
@@ -93,11 +89,11 @@ class AuthService {
     }
 
     // 4. Tạo Access Token mới
-    const newAccessToken = jwt.sign(
-      { user_id: payload.user_id, email: payload.email, role: payload.role },
-      process.env.ACCESS_TOKEN_SECRET as string,
-      { expiresIn: "15m" } // Access token nên để hạn ngắn (15-30p)
-    );
+    const newAccessToken = TokenService.generateAccessToken({
+      user_id: payload.user_id,
+      email: payload.email,
+      role: payload.role,
+    });
 
     return { accessToken: newAccessToken };
   } catch (error: any) {
@@ -106,23 +102,65 @@ class AuthService {
   }
 }
 
-  async forgotPassword(
-    email: string,
-  ) {
-    
+  async sendForgotPasswordEmail(email: string) {
+    try {
+      const user = await User.findOne({ where: { email } });
+    } catch (error) {
+      throw new Error("Error occurred while processing forgot password request");
+    }
 
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Tạo OTP 6 chữ số
+    TokenService.generateOtpToken({ email, otp });
+    
+    await MailService.sendOtpEmail(email, otp);
+    return { message: "OTP đã được gửi đến email của bạn" };
   }
 
-  async resetPassword(
-    email: string,
-    otp: string,
+  async verifyOtpToken(otpToken: string, otp: string) {
+    try {
+      const payload = TokenService.verifyOtpToken(otpToken) as { email: string; otp: string };
+      if (payload.otp !== otp) {
+        throw new Error("OTP không đúng");
+      }
+      return { email: payload.email };
+    } catch (error) {
+      throw new Error("OTP không hợp lệ hoặc đã hết hạn");
+    } 
+  }
+
+  async resetPassword(email: string, newPassword: string) {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new Error("Người dùng không tồn tại");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password_hash = hashedPassword;
+    await user.save();
+    return { message: "Đặt lại mật khẩu thành công" };
+  }
+
+  async changePassword(
+    userId: number,
+    currentPassword: string,
     newPassword: string,
   ) {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new Error("Người dùng không tồn tại");
+    }
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      throw new Error("Mật khẩu hiện tại không đúng");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password_hash = hashedPassword;
+    await user.save();
+    return { message: "Đổi mật khẩu thành công" };
+  }
 
-    // TODO:
-    // verify otp
-    // update password
-
+  async logout(refreshToken: string) {
+    await RefreshToken.destroy({ where: { token: refreshToken } });
+    return { message: "Đăng xuất thành công" };
   }
 
 }

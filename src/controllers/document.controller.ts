@@ -22,7 +22,22 @@ class DocumentController {
         }
     }
 
-    async uploadDocumentFile(req: Request, res: Response) {
+    async updateDocumentMetadata(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const metadata = req.body;
+            const updatedDocument = await documentService.updateDocumentMetadata(Number(id), metadata);
+            res.json({
+                success: true,
+                message: "Document metadata updated successfully",
+                data: updatedDocument
+            });
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    }
+
+    async uploadAndReplaceDocumentFile(req: Request, res: Response) {
         try {
             const { id } = req.params;
             const file = req.file;
@@ -30,7 +45,7 @@ class DocumentController {
                 return res.status(400).json({ error: "No file uploaded" });
             }
             
-            const result = await documentService.uploadDocumentFile(Number(id), file);
+            const result = await documentService.uploadAndReplaceDocumentFile(Number(id), file);
 
             return res.status(200).json({
                 success: true,
@@ -46,7 +61,7 @@ class DocumentController {
         }
     }
 
-    async uploadDocumentThumbnail(req: Request, res: Response) {
+    async uploadAndReplaceDocumentThumbnail(req: Request, res: Response) {
         try {
             const { id } = req.params;
             const file = req.file;
@@ -54,7 +69,7 @@ class DocumentController {
                 return res.status(400).json({ error: "No file uploaded" });
             }
 
-            const result = await documentService.uploadDocumentThumbnail(Number(id), file);
+            const result = await documentService.uploadAndReplaceDocumentThumbnail(Number(id), file);
 
             return res.status(200).json({
                 success: true,
@@ -93,6 +108,27 @@ class DocumentController {
             }
             const document = await documentService.getDocumentById(documentId);
             res.json(document);
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    }
+
+    async deleteDocument(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const idStr = Array.isArray(id) ? id[0] : id;
+            if (!idStr) {
+                return res.status(400).json({ error: "Invalid or missing id parameter" });
+            }
+            const documentId = parseInt(idStr, 10);
+            if (Number.isNaN(documentId)) {
+                return res.status(400).json({ error: "id must be a valid number" });
+            }
+            const result = await documentService.deleteDocument(documentId);
+            res.json({ 
+                success: true, 
+                message: "Document deleted successfully" 
+            });
         } catch (error) {
             res.status(500).json({ error: (error as Error).message });
         }

@@ -7,16 +7,22 @@ const router = express.Router();
 //POST tạo document mới (trả về document_id để client biết đường dẫn upload file và thumbnail)
 router.post('/create', documentController.initDocument);
 
+//PUT cập nhật metadata của document (title, description, price_credits, category_id)
+router.put('/:id/metadata', documentController.updateDocumentMetadata);
+
 //POST upload file và thumbnail (sử dụng multer middleware để xử lý file upload)
-router.post('/:id/upload-file', uploadDoc.single('file'), documentController.uploadDocumentFile);
+router.post('/:id/upload-file', uploadDoc.single('file'), documentController.uploadAndReplaceDocumentFile);
 
 //POST upload thumbnail (sử dụng multer middleware để xử lý file upload)
-router.post('/:id/upload-thumb', uploadThumb.single('file'), documentController.uploadDocumentThumbnail);
+router.post('/:id/upload-thumb', uploadThumb.single('file'), documentController.uploadAndReplaceDocumentThumbnail);
 
 //GET tìm kiếm tài liệu theo tiêu đề, mô tả, hoặc tên thể loại
 router.get('/search', documentController.searchDocuments);
 
 //GET lấy metadata của tài liệu (không bao gồm file_url) để hiển thị chi tiết tài liệu
 router.get('/:id/metadata', documentController.getDocumentById);
+
+//DELETE xóa tài liệu (cả metadata và file trên Supabase)
+router.delete('/:id', documentController.deleteDocument);
 
 export default router;  
